@@ -1,102 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
+<form id="register-form">
+    <input type="email" id="register-email" placeholder="Email" required>
+    <input type="password" id="register-password" placeholder="Password" required>
+    <input type="text" id="register-name" placeholder="Name (optional)">
+    <input type="text" id="register-city" placeholder="City (optional)">
+    <textarea id="register-bio" placeholder="Bio (optional)"></textarea>
+    <button type="submit">Register</button>
+</form>
 
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+<!-- reCAPTCHA container (it’s invisible, so no UI) -->
+<div id="recaptcha-container"></div>
 
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("register-form").addEventListener("submit", async (event) => {
-                event.preventDefault();
+<script>
+    document.getElementById('register-form').addEventListener('submit', (event) => {
+        event.preventDefault();
 
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                const name = document.getElementById("name").value;
-                const city = document.getElementById("city").value;
-                const bio = document.getElementById("bio").value;
-                const file = document.getElementById("profile-pic").files[0];
+        // Get form values
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const name = document.getElementById('register-name').value;
+        const city = document.getElementById('register-city').value;
+        const bio = document.getElementById('register-bio').value;
 
-                // Create user
-                createUserWithEmailAndPassword(auth, email, password)
-                    .then(async (userCredential) => {
-                        const user = userCredential.user;
-                        let profilePicUrl = "";
-
-                        if (file) {
-                            // Upload profile picture
-                            const storageRef = ref(storage, `profile_pics/${user.uid}`);
-                            await uploadBytes(storageRef, file);
-                            profilePicUrl = await getDownloadURL(storageRef);
-                        }
-
-                        // Save user data
-                        await setDoc(doc(db, "users", user.uid), {
-                            name,
-                            city,
-                            bio,
-                            profilePicUrl
-                        });
-
-                        alert("Registration successful!");
-                        window.location.href = "dashboard.html";
-                    })
-                    .catch(error => alert(error.message));
-            });
-        });
-    </script>
-</head>
-<body>
-    <h2>Register</h2>
-    <form id="register-form">
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <input type="text" id="name" placeholder="Name (or Anonymous)" required>
-        <input type="text" id="city" placeholder="City" required>
-        <textarea id="bio" placeholder="Bio (Social Media Links)"></textarea>
-        <input type="file" id="profile-pic" accept="image/*">
-        <button type="submit">Register</button>
-    </form>
-    <div id="recaptcha-container"></div>
-    <p>Already have an account? <a href="index.html">Go back to the landing page</a></p>
-    <script type="module">
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-  // Get authentication instance
-  const auth = window.auth;
-
-  document.getElementById("register-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    // Get user input
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      alert("Registration successful! Redirecting...");
-      window.location.href = "dashboard.html"; // Redirect after successful signup
-    } catch (error) {
-      alert(error.message);
-    }
-  });
+        // Call the registerUser function from script.js
+        registerUser(email, password, name, city, bio); // Pass 'null' for profilePic for now
+    });
 </script>
-</body>
-</html>
