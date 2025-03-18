@@ -1,27 +1,118 @@
-<form id="register-form">
-    <input type="email" id="register-email" placeholder="Email" required>
-    <input type="password" id="register-password" placeholder="Password" required>
-    <input type="text" id="register-name" placeholder="Name (optional)">
-    <input type="text" id="register-city" placeholder="City (optional)">
-    <textarea id="register-bio" placeholder="Bio (optional)"></textarea>
-    <button type="submit">Register</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Jockum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module">
+        // Import Firebase SDK (Always use the latest version)
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
+        import { RecaptchaVerifier } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
 
-<!-- reCAPTCHA container (it’s invisible, so no UI) -->
-<div id="recaptcha-container"></div>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZJ7ZPNiKTj3pim2G7iJeOcIWe93BbdxU",
+            authDomain: "jockum-art-trade.firebaseapp.com",
+            projectId: "jockum-art-trade",
+            storageBucket: "jockum-art-trade.appspot.com",
+            messagingSenderId: "660182457462",
+            appId: "1:660182457462:web:1a5bb2e3a93a55eac39357",
+            measurementId: "G-07BRPVLF47"
+        };
 
-<script>
-    document.getElementById('register-form').addEventListener('submit', (event) => {
-        event.preventDefault();
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-        // Get form values
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
-        const name = document.getElementById('register-name').value;
-        const city = document.getElementById('register-city').value;
-        const bio = document.getElementById('register-bio').value;
+        // Initialize reCAPTCHA verifier (invisible mode)
+        const recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+            size: 'invisible',
+            callback: (response) => {
+                console.log('reCAPTCHA completed successfully');
+            }
+        }, auth);
+    </script>
+</head>
+<body>
+    <h1>Register for Jockum</h1>
 
-        // Call the registerUser function from script.js
-        registerUser(email, password, name, city, bio); // Pass 'null' for profilePic for now
-    });
-</script>
+    <!-- Registration Form -->
+    <form id="register-form">
+        <input type="email" id="register-email" placeholder="Email" required>
+        <input type="password" id="register-password" placeholder="Password" required>
+        <input type="text" id="register-name" placeholder="Name or alias"required>
+        <input type="text" id="register-city" placeholder="City"required>
+        <textarea id="register-bio" placeholder="Bio (optional)"></textarea>
+        
+        <!-- Profile picture upload -->
+        <input type="file" id="profile-pic" accept="image/*">
+        
+        <button type="submit">Register</button>
+    </form>
+
+    <!-- reCAPTCHA container (it’s invisible) -->
+    <div id="recaptcha-container"></div>
+
+    <!-- Link to Login -->
+    <p>Already have an account? <a href="login.html">Log in here</a></p>
+
+    <script>
+        // Handle form submission
+        document.getElementById('register-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            // Get form values
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const name = document.getElementById('register-name').value;
+            const city = document.getElementById('register-city').value;
+            const bio = document.getElementById('register-bio').value;
+            const profilePic = document.getElementById('profile-pic').files[0]; // Get selected profile picture
+
+            // Register user with Firebase
+            registerUser(email, password, name, city, bio, profilePic);
+        });
+
+        // Function to register a new user
+        function registerUser(email, password, name, city, bio, profilePic) {
+            // Firebase Authentication: Create user with email and password
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // User registered successfully
+                    const user = userCredential.user;
+                    console.log('User registered:', user);
+
+                    // Optionally: upload profile picture to Firebase Storage
+                    if (profilePic) {
+                        const storageRef = firebase.storage().ref();
+                        const profilePicRef = storageRef.child(`profile_pics/${user.uid}`);
+                        profilePicRef.put(profilePic).then(() => {
+                            console.log('Profile picture uploaded');
+                        }).catch((error) => {
+                            console.error('Error uploading profile picture:', error);
+                        });
+                    }
+
+                    // Save additional user data (e.g., name, city, bio) to Firebase Database
+                    const db = firebase.database();
+                    const usersRef = db.ref('users/' + user.uid);
+                    usersRef.set({
+                        name: name || null,
+                        city: city || null,
+                        bio: bio || null,
+                    });
+
+                    // Redirect to dashboard or another page after registration
+                    window.location.href = 'dashboard.html'; // Update this to your actual dashboard page
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.error('Registration failed:', errorCode, errorMessage);
+                });
+        }
+    </script>
+</body>
+</html>
