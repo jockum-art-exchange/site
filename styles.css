@@ -1,1 +1,16 @@
+body {
+    font-family: 'Nunito', sans-serif; /* Apply Nunito to the entire body */
+}
+
+h1 {
+    font-family: 'Nunito', sans-serif; /* Apply Nunito to h1 headings */
+}
+
+p {
+    font-family: 'Nunito', sans-serif; /* Apply Nunito to paragraphs */
+}
+
+h2 {
+    font-family: 'Nunito', sans-serif; /* Apply Nunito to paragraphs */
+}
 
