@@ -1,4 +1,4 @@
-// Import the necessary Firebase modules
+// Import Firebase Authentication and other required modules
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, RecaptchaVerifier, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
 import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js';
@@ -28,24 +28,29 @@ const recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
 }, auth);
 
 // Register a new user
-const registerUser = (email, password, profilePic, name, city, bio) => {
-  createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      console.log('User registered:', user);
+const registerUser = (email, password, name, city, bio) => {
+  // Ensure reCAPTCHA is rendered before proceeding
+  recaptchaVerifier.render().then(() => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log('User registered:', user);
 
-      // Save additional user information to Firebase Database
-      const userRef = ref(db, 'users/' + user.uid);
-      set(userRef, {
-        name: name || 'Anonymous', // Optional name, default is 'Anonymous'
-        city: city || 'Not Provided',
-        bio: bio || 'No bio provided',
-        profilePic: profilePic || 'defaultProfilePic.jpg' // Placeholder for profile picture
+        // Save additional user information to Firebase Database
+        const userRef = ref(db, 'users/' + user.uid);
+        set(userRef, {
+          name: name || 'Anonymous', // Optional name, default is 'Anonymous'
+          city: city || 'Not Provided',
+          bio: bio || 'No bio provided',
+          profilePic: 'defaultProfilePic.jpg' // Placeholder for profile picture
+        });
+      })
+      .catch((error) => {
+        console.error('Error registering user:', error);
       });
-    })
-    .catch((error) => {
-      console.error('Error registering user:', error);
-    });
+  }).catch((error) => {
+    console.error('Error rendering reCAPTCHA:', error);
+  });
 };
 
 // Login user
