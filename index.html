@@ -3,23 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jockum</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js"></script>
+    <title>Register</title>
+    <style>
+        /* Hide the default file input button */
+        .file-input {
+            display: none;
+        }
 
-    <!-- Optionally, Firebase Analytics -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js"></script>
+        /* Style for the custom button */
+        .custom-file-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        /* Hover effect for custom button */
+        .custom-file-button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Jockum. An art-exchange site made by artists, for artists.</h1>
-    <button onclick="window.location.href='login.html'">Login</button>
-    <button onclick="window.location.href='register.html'">Register</button>
+    <h2>Register</h2>
+    <form id="register-form">
+        <input type="email" id="email" placeholder="Enter your email" required>
+        <input type="password" id="password" placeholder="Enter your password" required>
+        
+        <!-- Custom file input button -->
+        <label for="profile-pic" class="custom-file-button">Profile Pic</label>
+        <input type="file" id="profile-pic" class="file-input" accept="image/*">
 
-    <!-- Link to your external script.js file -->
-    <script src="script.js"></script>
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <p>Already have an account? <a href="index.html">Go back to the homepage</a></p>
+
+    <script type="module">
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const auth = window.auth;
+
+        document.getElementById("register-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                alert("Registration successful! Redirecting...");
+                window.location.href = "dashboard.html"; // Redirect after signup
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
 </body>
 </html>
