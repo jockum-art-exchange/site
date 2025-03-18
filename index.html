@@ -3,63 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <style>
-        /* Hide the default file input button */
-        .file-input {
-            display: none;
-        }
+    <title>Jockum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module">
+        // Import Firebase SDK (Always use the latest version)
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
+        import { RecaptchaVerifier } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
+        import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js';
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js';
 
-        /* Style for the custom button */
-        .custom-file-button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-        }
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZJ7ZPNiKTj3pim2G7iJeOcIWe93BbdxU",
+            authDomain: "jockum-art-trade.firebaseapp.com",
+            projectId: "jockum-art-trade",
+            storageBucket: "jockum-art-trade.appspot.com",
+            messagingSenderId: "660182457462",
+            appId: "1:660182457462:web:1a5bb2e3a93a55eac39357",
+            measurementId: "G-07BRPVLF47"
+        };
 
-        /* Hover effect for custom button */
-        .custom-file-button:hover {
-            background-color: #45a049;
-        }
-    </style>
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); // Firebase Auth instance
+        const db = getDatabase(app); // Firebase Database instance
+        const storage = getStorage(app); // Firebase Storage instance
+
+        // Initialize reCAPTCHA verifier (Invisible)
+        const recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+            size: 'invisible', // Invisible reCAPTCHA
+            callback: (response) => {
+                console.log('reCAPTCHA completed successfully');
+            }
+        }, auth);
+
+        // Handle registration process
+        const registerUser = (email, password, name, city, bio, profilePicFile) => {
+            recaptchaVerifier.render().then(() => {
+                // Create user with Firebase Authentication
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+                        console.log('User registered:', user);
+
+                        // If there's a profile picture, upload it to Firebase Storage
+                        if (profilePicFile) {
+                            const storageReference = storageRef(storage, 'profile_pics/' + user.uid + '/' + profilePicFile.name);
+                            uploadBytes(storageReference, profilePicFile).then((snapshot) => {
+                                console.log('Profile picture uploaded!');
+                                // Get the download URL of the uploaded image
+                                getDownloadURL(snapshot.ref).then((downloadURL) => {
+                                    // Save user data to Firebase Realtime Database
+                                    const userRef = ref(db, 'users/' + user.uid);
+                                    set(userRef, {
+                                        name: name || 'Anonymous',
+                                        city: city || 'Not Provided',
+                                        bio: bio || 'No bio provided',
+                                        profilePic: downloadURL // Store the image URL in Firebase
+                                    });
+                                });
+                            });
+                        } else {
+                            // If no profile picture, store user data without it
+                            const userRef = ref(db, 'users/' + user.uid);
+                            set(userRef, {
+                                name: name || 'Anonymous',
+                                city: city || 'Not Provided',
+                                bio: bio || 'No bio provided',
+                                profilePic: 'defaultProfilePic.jpg' // Placeholder for profile picture
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error registering user:', error);
+                    });
+            }).catch((error) => {
+                console.error('Error rendering reCAPTCHA:', error);
+            });
+        };
+    </script>
 </head>
 <body>
-    <h2>Register</h2>
-    <form id="register-form">
-        <input type="email" id="email" placeholder="Enter your email" required>
-        <input type="password" id="password" placeholder="Enter your password" required>
-        
-        <!-- Custom file input button -->
-        <label for="profile-pic" class="custom-file-button">Profile Pic</label>
-        <input type="file" id="profile-pic" class="file-input" accept="image/*">
+    <h1>Welcome to Jockum. An art-exchange site made by artists, for artists.</h1>
 
-        <button type="submit">Sign Up</button>
+    <!-- Buttons for Login and Register -->
+    <button onclick="window.location.href='login.html'">Login</button>
+    <button onclick="window.location.href='register.html'">Register</button>
+
+    <!-- Link back to the Login page (for already registered users) -->
+    <p>Already have an account? <a href="login.html">Login here</a></p>
+
+    <!-- Registration form with profile picture upload option -->
+    <form id="register-form">
+        <input type="email" id="register-email" placeholder="Email" required>
+        <input type="password" id="register-password" placeholder="Password" required>
+        <input type="text" id="register-name" placeholder="Name (optional)">
+        <input type="text" id="register-city" placeholder="City (optional)">
+        <textarea id="register-bio" placeholder="Bio (optional)"></textarea>
+        
+        <!-- Profile Picture Upload -->
+        <input type="file" id="profile-pic" accept="image/*">
+
+        <button type="submit">Register</button>
     </form>
 
-    <p>Already have an account? <a href="index.html">Go back to the homepage</a></p>
+    <!-- reCAPTCHA container (it’s invisible, so no UI) -->
+    <div id="recaptcha-container"></div>
 
-    <script type="module">
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-        const auth = window.auth;
-
-        document.getElementById("register-form").addEventListener("submit", async (event) => {
+    <script>
+        document.getElementById('register-form').addEventListener('submit', (event) => {
             event.preventDefault();
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+            // Get form values
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const name = document.getElementById('register-name').value;
+            const city = document.getElementById('register-city').value;
+            const bio = document.getElementById('register-bio').value;
+            const profilePicFile = document.getElementById('profile-pic').files[0]; // Get the profile picture file
 
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                alert("Registration successful! Redirecting...");
-                window.location.href = "dashboard.html"; // Redirect after signup
-            } catch (error) {
-                alert(error.message);
-            }
+            // Call the registerUser function from script.js
+            registerUser(email, password, name, city, bio, profilePicFile); // Pass the profile picture file to Firebase
         });
     </script>
 </body>
