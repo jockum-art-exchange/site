@@ -4,6 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jockum</title>
+    <script type="module">
+  // Import Firebase SDK (Always use the latest version)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+  // Firebase Configuration (Replace with YOUR actual Firebase config)
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  window.auth = auth; // Make auth available globally
+</script>
+
 </head>
 <body>
     <h1>Welcome to Jockum. An art-exchange site made by artists, for artists.</h1>
